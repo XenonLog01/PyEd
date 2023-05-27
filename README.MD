@@ -9,7 +9,7 @@
 
 ## Todo
  * [x] cut/copy/pasting
- * [ ] restructure code to make it bearable [In Progress]
+ * [x] restructure code to make it bearable [In Progress]
  * [ ] custom syntax highlighting
  * [ ] side-by-side files
  * [ ] editor tabs

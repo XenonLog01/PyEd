@@ -45,8 +45,8 @@ class CText(tk.Text):
         self.event_generate("<<Change>>", when="tail")
       # return what the actual widget returned
       return result
-    except Exception:
-      pass
+    except AttributeError:
+      pass # Ignore the error thrown when you paste stuff. 
 
 class TextLineNumbers(tk.Canvas):
   color = "#000000" # A Default color for text.

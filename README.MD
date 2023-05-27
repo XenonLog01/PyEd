@@ -5,10 +5,11 @@
  * Opening & saving files
  * A simple ui
  * (Very)simple config files. (WIP)
+ * Cut/Copy/Paste.
 
 ## Todo
  * [x] cut/copy/pasting
- * [ ] restructure code to make it bearable
+ * [ ] restructure code to make it bearable [In Progress]
  * [ ] custom syntax highlighting
  * [ ] side-by-side files
  * [ ] editor tabs

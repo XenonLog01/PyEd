@@ -9,13 +9,6 @@ config = {
   "colors" : {
     "bg": "#ffffff",
     "txt": "#000000",
-    "highlighting" : {
-      "kwd" : "#ff3355",
-      "comment" : "#ffffff",
-      "definition" : "#eeeeee",
-      "string" : "#ff0000",
-      "builtin" : "#00ffff"
-    }
   }
 }
 
@@ -27,13 +20,8 @@ def generate_config(path):
         if itm == "colors":
           for col_itm in data["colors"]:
             if col_itm in config["colors"]:
-              if col_itm == "highlighting":
-                for col in data["colors"]["highlighting"]:
-                  config[itm][col_itm][col] = hex(data[itm][col_itm][col])
-                  config[itm][col_itm][col] = config[itm][col_itm][col].replace("0x", "#")[::-1].zfill(7)[::-1]
-              else:
-                config[itm][col_itm] = hex(data[itm][col_itm])
-                config[itm][col_itm] = config[itm][col_itm].replace("0x", "#")[::-1].zfill(7)[::-1]
+              config[itm][col_itm] = hex(data[itm][col_itm])
+              config[itm][col_itm] = config[itm][col_itm].replace("0x", "#")[::-1].zfill(7)[::-1]
         elif itm == "font":
           for fnt in data["font"]:
             if fnt in config["font"]:

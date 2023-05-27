@@ -20,170 +20,161 @@ import text as text # Import some custom UI elements
 import config as config # Import the file to parse config files.
 import sys  # For sys.exit
 
-copy_buffer = []
-current_ln = 0
-current_col = 0
+class Window(tk.Tk):
+  def __init__(self, title, conf_path, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
 
-title = "Notepad 2.1/2"
+    self.win_title = title
 
-cfg = config.generate_config("cfg/config.yaml")
+    self.copy_buffer = []
+    self.line_num = 0
+    self.col_num  = 0
+    
+    self.current_file = ''
+    self.supported_filetypes = [
+      ("All Files", "*.*"),
+      ("Text Files", "*.txt"),
+      ("Python Files", "*.py")
+    ]
 
-# Create a window
-win = tk.Tk()
-win.title(title)
-win.geometry("720x1280")
+    self.title(title)
+    self.geometry('800x600')
 
-cdg = ColorDelegator() # Colors!
-cdg.tagdefs['COMMENT'] = {
-  'foreground': cfg["colors"]["highlighting"]["comment"],
-  'background': cfg["colors"]["bg"]
-}
-cdg.tagdefs['KEYWORD'] = {
-  'foreground': cfg["colors"]["highlighting"]["kwd"],
-  'background': cfg["colors"]["bg"]
-}
-cdg.tagdefs['BUILTIN'] = {
-  'foreground': cfg["colors"]["highlighting"]["builtin"],
-  'background': cfg["colors"]["bg"]
-}
-cdg.tagdefs['STRING'] = {
-  'foreground': cfg["colors"]["highlighting"]["string"],
-  'background': cfg["colors"]["bg"]
-}
-cdg.tagdefs['DEFINITION'] = {
-  'foreground': cfg["colors"]["highlighting"]["definition"],
-  'background': cfg["colors"]["bg"]
-}
+    self.cfg = config.generate_config(conf_path)
 
-# The text entry box
-txt_field = text.EditPannel(win)
-txt_entry = txt_field.text
-txt_field.set_font(cfg["font"]["family"], cfg["font"]["size"])
-txt_field.set_bg_col(cfg["colors"]["bg"])
-txt_field.set_txt_col(cfg["colors"]["txt"])
-txt_field.pack(side="top", fill="both", expand=True)
-Percolator(txt_entry).insertfilter(cdg)
+    cdg = ColorDelegator() # Colors!
+    cdg.tagdefs['COMMENT'] = {
+      'foreground': self.cfg["colors"]["highlighting"]["comment"],
+      'background': self.cfg["colors"]["bg"]
+    }
+    cdg.tagdefs['KEYWORD'] = {
+      'foreground': self.cfg["colors"]["highlighting"]["kwd"],
+      'background': self.cfg["colors"]["bg"]
+    }
+    cdg.tagdefs['BUILTIN'] = {
+      'foreground': self.cfg["colors"]["highlighting"]["builtin"],
+      'background': self.cfg["colors"]["bg"]
+    }
+    cdg.tagdefs['STRING'] = {
+      'foreground': self.cfg["colors"]["highlighting"]["string"],
+      'background': self.cfg["colors"]["bg"]
+    }
+    cdg.tagdefs['DEFINITION'] = {
+      'foreground': self.cfg["colors"]["highlighting"]["definition"],
+      'background': self.cfg["colors"]["bg"]
+    }
 
-txt_entry.change_tabstop(cfg["font"]["tabstop"]*2)
+    self.text_field = text.EditPannel(self)
+    self.text_entry_field = self.text_field.text
 
-# Statusbar
-statusbar = text.Statusbar(win)
+    self.text_field.set_font(self.cfg['font']['family'], self.cfg['font']['size'])
+    self.text_field.set_bg_col(self.cfg['colors']['bg'])
+    self.text_field.set_txt_col(self.cfg['colors']['txt'])
 
-status_line = text.StatusbarElem(statusbar)
-status_line_txt = tk.Label(status_line, text="ln 1 : col 0")
-status_line.set_elem(status_line_txt)
+    self.text_field.pack(side='top', fill='both', expand=True)
 
-statusbar.add_elem(status_line)
+    Percolator(self.text_entry_field).insertfilter(cdg)
 
-def update_line_num(e):
-  global current_col, current_ln
-  current_ln, current_col = txt_entry.index("insert").split('.')
-  status_line_txt.configure(text=f"ln {current_ln} : col {current_col}")
+    self.text_entry_field.change_tabstop(self.cfg['font']['tabstop']*2)
 
-  statusbar.draw()
+    self.statusbar = text.Statusbar(self)
+    self.status_line = text.StatusbarElem(self.statusbar)
+    self.status_line_text = tk.Label(self.status_line, text='ln 1 : col 0')
 
-txt_entry.add_event_on_keypress(update_line_num)
-txt_entry.add_event_on_mouse_event(update_line_num)
+    self.status_line.set_elem(self.status_line_text)
+    self.statusbar.add_elem(self.status_line)
 
-statusbar.draw()
+    self.text_entry_field.add_event_on_keypress(self.update_line_num)
+    self.text_entry_field.add_event_on_mouse_event(self.update_line_num)
 
-current_file = ""
+    self.statusbar.draw()
 
-supported_filetypes = [
-  ("All Files", "*.*"),
-  ("Text Files", "*.txt"),
-  ("Python Files", "*.py")
-]
+    # The menubar
+    menubar = tk.Menu(self)
+    file_menu = tk.Menu(menubar, tearoff=0)
 
-# The file dialogs to open and save files. 
-def open_file(e=None):
-  """Open a file for editing."""
-  global current_file
-  filepath = filedialog.askopenfilename(
-  filetypes=supported_filetypes
-  )
+    # file_menu.add_command(label="New")
+    file_menu.add_command(label="Open", command=self.open_file)
+    file_menu.add_command(label="Save", command=self.save_file)
+    file_menu.add_command(label="Save As", command=self.save_file_as)
+    file_menu.add_command(label="Cut", command=self.cut_selection)
+    file_menu.add_command(label="Copy", command=self.copy_selection)
+    file_menu.add_command(label="Paste", command=self.paste)
+    file_menu.add_separator()
+    file_menu.add_command(label="Exit", command=sys.exit)
+    menubar.add_cascade(label="File", menu=file_menu)
 
-  if filepath == "":
-    return
+    self.bind('<Control-o>', self.open_file)
+    self.bind('<Control-s>', self.save_file)
+    self.bind('<Control-S>', self.save_file_as)
 
-  current_file = filepath
+    self.bind('<Control-x>', self.cut_selection)
+    self.bind('<Control-c>', self.copy_selection)
+    self.bind('<Control-v>', self.paste)
 
-  txt_field.text.delete("1.0", tk.END)
+    # Configure the window, and run the main loop. 
+    self.config(menu=menubar)
 
-  with open(filepath, mode="r", encoding="utf-8") as input_file:
-    file_text = input_file.read()
-    txt_field.text.insert(tk.END, file_text)
+  def update_line_num(self, e):
+    self.line_num, self.col_num = self.text_entry_field.index('insert').split('.')
+    self.status_line_text.configure(text=f'ln {self.line_num} : col {self.col_num}')
+    self.statusbar.draw()
 
-  win.title(f"{title} - {filepath}")
+  def open_file(self, e=None):
+    filepath = filedialog.askopenfilename(filetypes=supported_filetypes)
 
-def save_file_as(e=None):
-  """Save the current file as a new file."""
-  global current_file
-  filepath = filedialog.asksaveasfilename(
-    defaultextension=".txt",
-    filetypes=supported_filetypes
-  )
+    if filepath == '':
+      return
 
-  if filepath == "":
-    return
+    self.current_file = filepath
 
-  current_file = filepath
+    self.text_entry_field.delete('1.0', tk.END)
 
-  with open(filepath, mode="w", encoding="utf-8") as output_file:
-    file_text = txt_field.text.get("1.0", tk.END)
-    output_file.write(file_text)
+    with open(filepath, mode='r', encoding='utf-8') as input_file:
+      file_text = input_file.read()
+      self.text_entry_field.insert('1.0', file_text)
 
-  win.title(f"{title} - {filepath}")
+    self.title(f"{self.win_title} - {filepath}")
 
-def save_file(e=None):
-  """Save the current file"""
-  if current_file == "":
-    save_file_as()
-    return
+  def save_file_as(self, e=None):
+    filepath = filedialog.asksaveasfilename(
+      defaultextension='.txt',
+      filetypes=self.supported_filetypes
+    )
 
-  with open(current_file, mode="w", encoding="utf-8") as output_file:
-    file_text = txt_field.text.get("1.0", tk.END)
-    output_file.write(file_text)
+    if filepath == '':
+      return
 
-def copy_cmd(e=None):
-  if txt_entry.selection_get():
-    copy_buffer.append(txt_entry.selection_get())
+    self.current_file = filepath
 
-def paste_cmd(e=None):
-  if copy_buffer.len() > 0: 
-    txt_entry.insert(f"{current_ln}.{current_col}", copy_buffer[len(copy_buffer)-1])
+    with open(filepath, mode='w', encoding='utf-8') as output_file:
+      file_text = self.text_entry_field.get('1.0', tk.END)
+      output_file.write(file_text)
 
-def cut_cmd(e=None):
-  if txt_entry.selection_get():
-    copy_buffer.append(txt_entry.selection_get())
-    txt_entry.delete('sel.first', 'sel.last')
+    self.title(f'{self.win_title} - {filepath}')
 
-# The menubar
-menubar = tk.Menu(win)
-file_menu = tk.Menu(menubar, tearoff=0)
+  def save_file(self, e=None):
+    if self.current_file == '':
+      self.save_file_as(e)
+      return
 
-# file_menu.add_command(label="New")
-file_menu.add_command(label="Open", command=open_file)
-file_menu.add_command(label="Save", command=save_file)
-file_menu.add_command(label="Save As", command=save_file_as)
-file_menu.add_command(label="Cut", command=cut_cmd)
-file_menu.add_command(label="Copy", command=copy_cmd)
-file_menu.add_command(label="Paste", command=paste_cmd)
-file_menu.add_separator()
-file_menu.add_command(label="Exit", command=sys.exit)
-menubar.add_cascade(label="File", menu=file_menu)
+    with open(self.current_file, mode='w', encoding='utf-8') as output_file:
+      file_text = self.text_entry_field.get('1.0', tk.END)
+      output_file.write(file_text)
 
-win.bind('<Control-o>', open_file)
-win.bind('<Control-s>', save_file)
-win.bind('<Control-S>', save_file_as)
+  def copy_selection(self, e=None):
+    if self.text_entry_field.selection_get():
+      self.copy_buffer.append(self.text_entry_field.selection_get())
 
-win.bind('<Control-x>', cut_cmd)
-win.bind('<Control-c>', copy_cmd)
-win.bind('<Control-v>', paste_cmd)
+  def cut_selection(self, e=None):
+    if self.text_entry_field.selection_get():
+      self.copy_buffer.append(self.text_entry_field.selection_get())
+      self.text_entry_field.delete('sel.first', 'sel.last')
 
-# Configure the window, and run the main loop. 
-win.config(menu=menubar)
+  def paste(self, e=None):
+    if self.copy_buffer.len() > 0: 
+      self.text_entry_field.insert(f'{self.line_num}.{self.col_num}', self.copy_buffer[len(self.copy_buffer)-1])
+
+
+win = Window('PyEd', 'cfg/config.yaml')
 win.mainloop()
-
-
-

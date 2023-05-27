@@ -7,7 +7,7 @@
  * (Very)simple config files. (WIP)
 
 ## Todo
- * [ ] cut/copy/pasting
+ * [x] cut/copy/pasting
  * [ ] restructure code to make it bearable
  * [ ] custom syntax highlighting
  * [ ] side-by-side files

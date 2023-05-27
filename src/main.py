@@ -16,8 +16,8 @@ from idlelib.colorizer import ColorDelegator # IDLE syntax highlighting
 from idlelib.percolator import Percolator
 from tkinter import filedialog
 import tkinter as tk
-import text # Import some custom UI elements
-import config # Import the file to parse config files.
+import text as text # Import some custom UI elements
+import config as config # Import the file to parse config files.
 import sys  # For sys.exit
 
 copy_buffer = []

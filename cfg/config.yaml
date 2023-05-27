@@ -1,0 +1,14 @@
+font:
+  family: Consolas
+  size: 20
+  tabstop: 2
+colors:
+  bg: 0x282c34
+  txt: 0xabb2bf
+  highlighting:
+    kwd : 0xc678dd
+    comment: 0x555555
+    definition: 0x61afef
+    string: 0x98c379
+    builtin: 0xe06c75
+

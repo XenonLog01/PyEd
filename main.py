@@ -4,11 +4,11 @@ Python - Final Project
 A simple text editor.
 
 Features:
-    - Line numbers
-    - Saving & Opening files
-    - Simple UI
-    - Simple configuration
-    - Syntax highlighting
+  - Line numbers
+  - Saving & Opening files
+  - Simple UI
+  - Simple configuration
+  - Syntax highlighting
 """
 
 # Import the tkinter and sys libraries.
@@ -35,24 +35,24 @@ win.geometry("720x1280")
 
 cdg = ColorDelegator() # Colors!
 cdg.tagdefs['COMMENT'] = {
-    'foreground': cfg["colors"]["highlighting"]["comment"],
-    'background': cfg["colors"]["bg"]
+  'foreground': cfg["colors"]["highlighting"]["comment"],
+  'background': cfg["colors"]["bg"]
 }
 cdg.tagdefs['KEYWORD'] = {
-    'foreground': cfg["colors"]["highlighting"]["kwd"],
-    'background': cfg["colors"]["bg"]
+  'foreground': cfg["colors"]["highlighting"]["kwd"],
+  'background': cfg["colors"]["bg"]
 }
 cdg.tagdefs['BUILTIN'] = {
-    'foreground': cfg["colors"]["highlighting"]["builtin"],
-    'background': cfg["colors"]["bg"]
+  'foreground': cfg["colors"]["highlighting"]["builtin"],
+  'background': cfg["colors"]["bg"]
 }
 cdg.tagdefs['STRING'] = {
-    'foreground': cfg["colors"]["highlighting"]["string"],
-    'background': cfg["colors"]["bg"]
+  'foreground': cfg["colors"]["highlighting"]["string"],
+  'background': cfg["colors"]["bg"]
 }
 cdg.tagdefs['DEFINITION'] = {
-    'foreground': cfg["colors"]["highlighting"]["definition"],
-    'background': cfg["colors"]["bg"]
+  'foreground': cfg["colors"]["highlighting"]["definition"],
+  'background': cfg["colors"]["bg"]
 }
 
 # The text entry box
@@ -76,11 +76,11 @@ status_line.set_elem(status_line_txt)
 statusbar.add_elem(status_line)
 
 def update_line_num(e):
-    global current_col, current_ln
-    current_ln, current_col = txt_entry.index("insert").split('.')
-    status_line_txt.configure(text=f"ln {current_ln} : col {current_col}")
+  global current_col, current_ln
+  current_ln, current_col = txt_entry.index("insert").split('.')
+  status_line_txt.configure(text=f"ln {current_ln} : col {current_col}")
 
-    statusbar.draw()
+  statusbar.draw()
 
 txt_entry.add_event_on_keypress(update_line_num)
 txt_entry.add_event_on_mouse_event(update_line_num)
@@ -90,73 +90,73 @@ statusbar.draw()
 current_file = ""
 
 supported_filetypes = [
-    ("All Files", "*.*"),
-    ("Text Files", "*.txt"),
-    ("Python Files", "*.py")
+  ("All Files", "*.*"),
+  ("Text Files", "*.txt"),
+  ("Python Files", "*.py")
 ]
 
 # The file dialogs to open and save files. 
 def open_file(e=None):
-    """Open a file for editing."""
-    global current_file
-    filepath = filedialog.askopenfilename(
-        filetypes=supported_filetypes
-    )
+  """Open a file for editing."""
+  global current_file
+  filepath = filedialog.askopenfilename(
+  filetypes=supported_filetypes
+  )
 
-    if filepath == "":
-        return
+  if filepath == "":
+    return
 
-    current_file = filepath
+  current_file = filepath
 
-    txt_field.text.delete("1.0", tk.END)
+  txt_field.text.delete("1.0", tk.END)
 
-    with open(filepath, mode="r", encoding="utf-8") as input_file:
-        file_text = input_file.read()
-        txt_field.text.insert(tk.END, file_text)
+  with open(filepath, mode="r", encoding="utf-8") as input_file:
+    file_text = input_file.read()
+    txt_field.text.insert(tk.END, file_text)
 
-    win.title(f"{title} - {filepath}")
+  win.title(f"{title} - {filepath}")
 
 def save_file_as(e=None):
-    """Save the current file as a new file."""
-    global current_file
-    filepath = filedialog.asksaveasfilename(
-        defaultextension=".txt",
-        filetypes=supported_filetypes
-    )
+  """Save the current file as a new file."""
+  global current_file
+  filepath = filedialog.asksaveasfilename(
+    defaultextension=".txt",
+    filetypes=supported_filetypes
+  )
 
-    if filepath == "":
-        return
+  if filepath == "":
+    return
 
-    current_file = filepath
+  current_file = filepath
 
-    with open(filepath, mode="w", encoding="utf-8") as output_file:
-        file_text = txt_field.text.get("1.0", tk.END)
-        output_file.write(file_text)
+  with open(filepath, mode="w", encoding="utf-8") as output_file:
+    file_text = txt_field.text.get("1.0", tk.END)
+    output_file.write(file_text)
 
-    win.title(f"{title} - {filepath}")
+  win.title(f"{title} - {filepath}")
 
 def save_file(e=None):
-    """Save the current file"""
-    if current_file == "":
-        save_file_as()
-        return
+  """Save the current file"""
+  if current_file == "":
+    save_file_as()
+    return
 
-    with open(current_file, mode="w", encoding="utf-8") as output_file:
-        file_text = txt_field.text.get("1.0", tk.END)
-        output_file.write(file_text)
+  with open(current_file, mode="w", encoding="utf-8") as output_file:
+    file_text = txt_field.text.get("1.0", tk.END)
+    output_file.write(file_text)
 
 def copy_cmd(e=None):
-    if txt_entry.selection_get():
-        copy_buffer.append(txt_entry.selection_get())
+  if txt_entry.selection_get():
+    copy_buffer.append(txt_entry.selection_get())
 
 def paste_cmd(e=None):
-    if copy_buffer.len() > 0: 
-        txt_entry.insert(f"{current_ln}.{current_col}", copy_buffer[len(copy_buffer)-1])
+  if copy_buffer.len() > 0: 
+    txt_entry.insert(f"{current_ln}.{current_col}", copy_buffer[len(copy_buffer)-1])
 
 def cut_cmd(e=None):
-    if txt_entry.selection_get():
-        copy_buffer.append(txt_entry.selection_get())
-        txt_entry.delete('sel.first', 'sel.last')
+  if txt_entry.selection_get():
+    copy_buffer.append(txt_entry.selection_get())
+    txt_entry.delete('sel.first', 'sel.last')
 
 # The menubar
 menubar = tk.Menu(win)

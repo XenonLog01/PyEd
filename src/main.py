@@ -18,7 +18,7 @@ class Window(tk.Tk):
 
     self.win_title = title
 
-    self.copy_buffer = []
+    self.copy_buffer = None
     self.line_num = 0
     self.col_num  = 0
     
@@ -34,28 +34,25 @@ class Window(tk.Tk):
 
     self.cfg = config.generate_config(conf_path)
 
-    self.text_field = text.EditPannel(self)
+    self.text_field = text.EditPannel(self)                           \
+      .set_font(self.cfg['font']['family'], self.cfg['font']['size']) \
+      .set_bg_col(self.cfg['colors']['bg'])                           \
+      .set_txt_col(self.cfg['colors']['txt'])                         \
+    
     self.text_entry_field = self.text_field.text
-
-    self.text_field.set_font(self.cfg['font']['family'], self.cfg['font']['size'])
-    self.text_field.set_bg_col(self.cfg['colors']['bg'])
-    self.text_field.set_txt_col(self.cfg['colors']['txt'])
 
     self.text_field.pack(side='top', fill='both', expand=True)
 
-    self.text_entry_field.change_tabstop(self.cfg['font']['tabstop']*2)
-
     self.statusbar = text.Statusbar(self)
     self.status_line = text.StatusbarElem(self.statusbar)
-    self.status_line_text = tk.Label(self.status_line, text='ln 1 : col 0')
+    status_line_text = tk.Label(self.status_line, text='ln 1 : col 0')
+    self.status_line.element(status_line_text)
+    self.statusbar.add_element(self.status_line) \
+                  .draw()                        \
 
-    self.status_line.set_elem(self.status_line_text)
-    self.statusbar.add_elem(self.status_line)
-
+    self.text_entry_field.change_tabstop(self.cfg['font']['tabstop']*2)
     self.text_entry_field.add_event_on_keypress(self.update_line_num)
     self.text_entry_field.add_event_on_mouse_event(self.update_line_num)
-
-    self.statusbar.draw()
 
     # The menubar
     menubar = tk.Menu(self)
@@ -87,7 +84,7 @@ class Window(tk.Tk):
 
   def update_line_num(self, e):
     self.line_num, self.col_num = self.text_entry_field.index('insert').split('.')
-    self.status_line_text.configure(text=f'ln {self.line_num} : col {self.col_num}')
+    self.status_line.elem.configure(text=f'ln {self.line_num} : col {self.col_num}')
     self.statusbar.draw()
 
   def open_file(self, e=None):
@@ -133,19 +130,20 @@ class Window(tk.Tk):
       output_file.write(file_text)
 
   def copy_selection(self, e=None):
-    if self.text_entry_field.selection_get():
-      self.copy_buffer.append(self.text_entry_field.selection_get())
+    selection = self.text_entry_field.get(f'{self.line_num}.{self.col_num}')[1:]
+    if selection:
+      self.copy_buffer = selection
 
   def cut_selection(self, e=None):
-    if self.text_entry_field.selection_get():
-      self.copy_buffer.append(self.text_entry_field.selection_get())
+    selection = self.text_entry_field.get(f'{self.line_num}.{self.col_num}')[1:]
+    if selection:
+      self.copy_buffer =selection
       self.text_entry_field.delete('sel.first', 'sel.last')
 
   def paste(self, e=None):
-    if self.copy_buffer.len() > 0: 
-      self.text_entry_field.insert(f'{self.line_num}.{self.col_num}', self.copy_buffer[len(self.copy_buffer)-1])
+    if self.copy_buffer: 
+      self.text_entry_field.insert(f'{self.line_num}.{self.col_num}', self.copy_buffer)
 
 
 win = Window('PyEd', 'cfg/config.yaml')
 win.mainloop()
-

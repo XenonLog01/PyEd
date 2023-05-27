@@ -45,7 +45,7 @@ class CText(tk.Text):
         self.event_generate("<<Change>>", when="tail")
       # return what the actual widget returned
       return result
-    except AttributeError:
+    except Exception:
       pass # Ignore the error thrown when you paste stuff. 
 
 class TextLineNumbers(tk.Canvas):
@@ -82,8 +82,9 @@ class Statusbar(tk.Frame):
     super().__init__(root, borderwidth=1, relief="raised")
     self.elems = []
 
-  def add_elem(self, elem):
+  def add_element(self, elem):
     self.elems.append(elem)
+    return self
 
   def draw(self):
     for i in range(len(self.elems)):
@@ -94,16 +95,22 @@ class Statusbar(tk.Frame):
     self.pack(side="bottom", fill="x")
 
 class StatusbarElem(tk.Frame):
-  def __init__(self, root):
+  def __init__(self, root, element=None, *, side='right', fill='x', padx=10, pady=0):
     super().__init__(root)
-    self.elem = None
+    self.elem = element
 
-  def set_elem(self, elem):
+    self.side = side
+    self.fill = fill
+    self.padx = padx
+    self.pady = pady
+
+  def element(self, elem):
     self.elem = elem
+    return self
 
   def draw(self):
     self.elem.pack(anchor="e")
-    self.pack(side="right", fill="x", padx=10)
+    self.pack(side=self.side, fill=self.fill, padx=self.padx, pady=self.pady)
 
 class EditPannel(tk.Frame):
   def __init__(self, root):
@@ -128,17 +135,20 @@ class EditPannel(tk.Frame):
   def set_font(self, fnt, size):
     self.text.configure(font=(fnt, size))
     self.linenumbers.set_font((fnt, size))
+    return self
     
   def set_bg_col(self, color):
     self.text.configure(bg=color)
     self.linenumbers.configure(bg=color)
     self.text.config(highlightbackground="white")
     self.linenumbers.config(highlightbackground=color)
+    return self
 
   def set_txt_col(self, color):
     self.text.configure(fg=color)   
     self.linenumbers.set_col(color)
     self.text.configure(insertbackground=color)
+    return self
 
-  def _on_change(self, event):
+  def _on_change(self, e):
     self.linenumbers.redraw()

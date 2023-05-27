@@ -96,7 +96,7 @@ supported_filetypes = [
 ]
 
 # The file dialogs to open and save files. 
-def open_file():
+def open_file(e=None):
     """Open a file for editing."""
     global current_file
     filepath = filedialog.askopenfilename(
@@ -116,7 +116,7 @@ def open_file():
 
     win.title(f"{title} - {filepath}")
 
-def save_file_as():
+def save_file_as(e=None):
     """Save the current file as a new file."""
     global current_file
     filepath = filedialog.asksaveasfilename(
@@ -135,7 +135,7 @@ def save_file_as():
 
     win.title(f"{title} - {filepath}")
 
-def save_file():
+def save_file(e=None):
     """Save the current file"""
     if current_file == "":
         save_file_as()
@@ -146,26 +146,40 @@ def save_file():
         output_file.write(file_text)
 
 def copy_cmd(e=None):
-    text = txt_entry.selection_get()
-    copy_buffer.append(text)
+    if txt_entry.selection_get():
+        copy_buffer.append(txt_entry.selection_get())
 
 def paste_cmd(e=None):
-    txt = copy_buffer[len(copy_buffer)-1]
-    txt_entry.insert(f"{current_ln}.{current_col}", txt)
+    if copy_buffer.len() > 0: 
+        txt_entry.insert(f"{current_ln}.{current_col}", copy_buffer[len(copy_buffer)-1])
+
+def cut_cmd(e=None):
+    if txt_entry.selection_get():
+        copy_buffer.append(txt_entry.selection_get())
+        txt_entry.delete('sel.first', 'sel.last')
 
 # The menubar
 menubar = tk.Menu(win)
 file_menu = tk.Menu(menubar, tearoff=0)
 
 # file_menu.add_command(label="New")
-file_menu.add_command(label="Open", command=open_file, accelerator='Ctrl+O')
-file_menu.add_command(label="Save", command=save_file, accelerator='Ctrl+S')
+file_menu.add_command(label="Open", command=open_file)
+file_menu.add_command(label="Save", command=save_file)
 file_menu.add_command(label="Save As", command=save_file_as)
-file_menu.add_command(label="Copy", command=copy_cmd, accelerator='Ctrl+C')
-file_menu.add_command(label="Paste", command=paste_cmd, accelerator='Ctrl+V')
+file_menu.add_command(label="Cut", command=cut_cmd)
+file_menu.add_command(label="Copy", command=copy_cmd)
+file_menu.add_command(label="Paste", command=paste_cmd)
 file_menu.add_separator()
-file_menu.add_command(label="Exit", command=sys.exit, accelerator='Ctrl+Q')
+file_menu.add_command(label="Exit", command=sys.exit)
 menubar.add_cascade(label="File", menu=file_menu)
+
+win.bind('<Control-o>', open_file)
+win.bind('<Control-s>', save_file)
+win.bind('<Control-S>', save_file_as)
+
+win.bind('<Control-x>', cut_cmd)
+win.bind('<Control-c>', copy_cmd)
+win.bind('<Control-v>', paste_cmd)
 
 # Configure the window, and run the main loop. 
 win.config(menu=menubar)

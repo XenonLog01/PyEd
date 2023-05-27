@@ -20,6 +20,10 @@ import text # Import some custom UI elements
 import config # Import the file to parse config files.
 import sys  # For sys.exit
 
+copy_buffer = []
+current_ln = 0
+current_col = 0
+
 title = "Notepad 2.1/2"
 
 cfg = config.generate_config("cfg/config.yaml")
@@ -27,7 +31,7 @@ cfg = config.generate_config("cfg/config.yaml")
 # Create a window
 win = tk.Tk()
 win.title(title)
-win.geometry("800x600")
+win.geometry("720x1280")
 
 cdg = ColorDelegator() # Colors!
 cdg.tagdefs['COMMENT'] = {
@@ -71,9 +75,10 @@ status_line.set_elem(status_line_txt)
 
 statusbar.add_elem(status_line)
 
-def update_line_num(event):
-    line_num, col_num = txt_entry.index("insert").split('.')
-    status_line_txt.configure(text=f"ln {line_num} : col {col_num}")
+def update_line_num(e):
+    global current_col, current_ln
+    current_ln, current_col = txt_entry.index("insert").split('.')
+    status_line_txt.configure(text=f"ln {current_ln} : col {current_col}")
 
     statusbar.draw()
 
@@ -140,33 +145,31 @@ def save_file():
         file_text = txt_field.text.get("1.0", tk.END)
         output_file.write(file_text)
 
+def copy_cmd(e=None):
+    text = txt_entry.selection_get()
+    copy_buffer.append(text)
+
+def paste_cmd(e=None):
+    txt = copy_buffer[len(copy_buffer)-1]
+    txt_entry.insert(f"{current_ln}.{current_col}", txt)
+
 # The menubar
 menubar = tk.Menu(win)
 file_menu = tk.Menu(menubar, tearoff=0)
 
 # file_menu.add_command(label="New")
-file_menu.add_command(label="Open", command=open_file)
-file_menu.add_command(label="Save", command=save_file)
+file_menu.add_command(label="Open", command=open_file, accelerator='Ctrl+O')
+file_menu.add_command(label="Save", command=save_file, accelerator='Ctrl+S')
 file_menu.add_command(label="Save As", command=save_file_as)
+file_menu.add_command(label="Copy", command=copy_cmd, accelerator='Ctrl+C')
+file_menu.add_command(label="Paste", command=paste_cmd, accelerator='Ctrl+V')
 file_menu.add_separator()
-file_menu.add_command(label="Exit", command=sys.exit)
+file_menu.add_command(label="Exit", command=sys.exit, accelerator='Ctrl+Q')
 menubar.add_cascade(label="File", menu=file_menu)
-
-def open_cmd(e):
-    open_file()
-
-
-def save_cmd(e):
-    save_file()
-
-def quit_cmd(e):
-    sys.exit(0)
 
 # Configure the window, and run the main loop. 
 win.config(menu=menubar)
-
-win.bind('<Control-o>', open_cmd) # Open file shortcut
-win.bind('<Control-s>', save_cmd) # Save file shortcut
-win.bind('<Control-q>', quit_cmd) # Quit command shortcut
 win.mainloop()
+
+
 

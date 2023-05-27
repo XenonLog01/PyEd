@@ -33,21 +33,24 @@ class CText(tk.Text):
     def _proxy(self, *args):
         # let the actual widget perform the requested action
         cmd = (self._orig,) + args
-        result = self.tk.call(cmd)
+        try:
+            result = self.tk.call(cmd)
 
-        # generate an event if something was added or deleted,
-        # or the cursor position changed
-        if (args[0] in ("insert", "replace", "delete") or 
-            args[0:3] == ("mark", "set", "insert") or
-            args[0:2] == ("xview", "moveto") or
-            args[0:2] == ("xview", "scroll") or
-            args[0:2] == ("yview", "moveto") or
-            args[0:2] == ("yview", "scroll")
-        ):
-            self.event_generate("<<Change>>", when="tail")
+            # generate an event if something was added or deleted,
+            # or the cursor position changed
+            if (args[0] in ("insert", "replace", "delete") or 
+                args[0:3] == ("mark", "set", "insert") or
+                args[0:2] == ("xview", "moveto") or
+                args[0:2] == ("xview", "scroll") or
+                args[0:2] == ("yview", "moveto") or
+                args[0:2] == ("yview", "scroll")
+            ):
+                self.event_generate("<<Change>>", when="tail")
 
-        # return what the actual widget returned
-        return result
+            # return what the actual widget returned
+            return result
+        except Exception:
+            pass
 
 class TextLineNumbers(tk.Canvas):
     color = "#000000" # A Default color for text.
@@ -60,6 +63,9 @@ class TextLineNumbers(tk.Canvas):
 
     def attach(self, text_widget):
         self.textwidget = text_widget
+
+    def set_font(self, fnt):
+        self.font = fnt
 
     def set_col(self, color):
         self.color = color
@@ -114,7 +120,7 @@ class EditPannel(tk.Frame):
         self.vsb = tk.Scrollbar(self, orient="vertical", command=self.text.yview)
         self.text.configure(yscrollcommand=self.vsb.set)
         self.text.configure(font=("Terminal", "10"))
-        self.linenumbers = TextLineNumbers(self, width=30)
+        self.linenumbers = TextLineNumbers(self, width=60)
         self.linenumbers.attach(self.text)
         self.linenumbers.configure(bg="white")
         self.linenumbers.config(highlightbackground="white")
@@ -129,7 +135,7 @@ class EditPannel(tk.Frame):
 
     def set_font(self, fnt, size):
         self.text.configure(font=(fnt, size))
-        self.linenumbers.font = (fnt, size)
+        self.linenumbers.set_font((fnt, size))
     
     def set_bg_col(self, color):
         self.text.configure(bg=color)
@@ -144,4 +150,7 @@ class EditPannel(tk.Frame):
 
     def _on_change(self, event):
         self.linenumbers.redraw()
+
+
+
 
